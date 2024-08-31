@@ -1,41 +1,36 @@
 import {
-  Pool,
-  PoolRPCView,
-  StablePool,
-  SmartRoutingInputPool,
-  Transaction,
   EstimateSwapView,
+  Pool,
+  PoolMode,
+  PoolRPCView,
+  SmartRoutingInputPool,
+  StablePool,
+  TokenMetadata,
+  Transaction,
 } from './types';
 import {
+  CONSTANT_D,
+  DCL_POOL_FEE_LIST,
   FEE_DIVISOR,
+  POINTLEFTRANGE,
+  POINTRIGHTRANGE,
   RATED_POOL_LP_TOKEN_DECIMALS,
   STABLE_LP_TOKEN_DECIMALS,
+  STORAGE_TO_REGISTER_WITH_MFT,
+  WRAP_NEAR_CONTRACT_ID,
 } from './constant';
 
-import {
-  transactions,
-  utils,
-  transactions as nearTransactions,
-} from 'near-api-js';
+import { utils, } from 'near-api-js';
 
-import _, { sortBy } from 'lodash';
+import { sortBy } from 'lodash';
 
 import BN from 'bn.js';
 
 import * as math from 'mathjs';
-import {
-  REF_FI_CONTRACT_ID,
-  WRAP_NEAR_CONTRACT_ID,
-  STORAGE_TO_REGISTER_WITH_MFT,
-} from './constant';
 import Big from 'big.js';
 import { SignAndSendTransactionsParams } from '@near-wallet-selector/core/lib/wallet';
-import { TokenMetadata } from './types';
-import { PoolMode } from './v1-swap/swap';
-import { getSwappedAmount } from './stable-swap';
 import { NoFeeToPool } from './error';
-import { CONSTANT_D, POINTLEFTRANGE, POINTRIGHTRANGE } from './constant';
-import { DCL_POOL_FEE_LIST } from './dcl-swap/dcl-pool';
+import { calc_swap } from "./stable-swap";
 
 export const parsePool = (pool: PoolRPCView, id?: number): Pool => ({
   id: Number(typeof id === 'number' ? id : pool.id),
@@ -473,6 +468,67 @@ export const calculateMarketPrice = (
   return math.evaluate(`(${cur_in_balance} / ${cur_out_balance})`);
 };
 
+export const getSwappedAmount = (
+  tokenInId: string,
+  tokenOutId: string,
+  amountIn: string,
+  stablePool: StablePool,
+  STABLE_LP_TOKEN_DECIMALS: number
+) => {
+  const amp = stablePool.amp;
+  const trade_fee = stablePool.total_fee;
+
+  // depended on pools
+  const in_token_idx = stablePool.token_account_ids.findIndex(
+    id => id === tokenInId
+  );
+  const out_token_idx = stablePool.token_account_ids.findIndex(
+    id => id === tokenOutId
+  );
+
+  const rates = stablePool.rates.map(r =>
+    toReadableNumber(STABLE_LP_TOKEN_DECIMALS, r)
+  );
+
+  const base_old_c_amounts = stablePool.c_amounts.map(amount =>
+    toReadableNumber(STABLE_LP_TOKEN_DECIMALS, amount)
+  );
+
+  const old_c_amounts = base_old_c_amounts
+    .map((amount, i) =>
+      toNonDivisibleNumber(
+        STABLE_LP_TOKEN_DECIMALS,
+        scientificNotationToString(
+          new Big(amount || 0).times(new Big(rates[i])).toString()
+        )
+      )
+    )
+    .map(amount => Number(amount));
+
+  const in_c_amount = Number(
+    toNonDivisibleNumber(
+      STABLE_LP_TOKEN_DECIMALS,
+      scientificNotationToString(
+        new Big(amountIn).times(new Big(rates[in_token_idx])).toString()
+      )
+    )
+  );
+
+  const [amount_swapped, fee, dy] = calc_swap(
+    amp,
+    in_token_idx,
+    in_c_amount,
+    out_token_idx,
+    old_c_amounts,
+    trade_fee
+  );
+
+  return [
+    amount_swapped / Number(rates[out_token_idx]),
+    fee,
+    dy / Number(rates[out_token_idx]),
+  ];
+};
 export const calculateSmartRoutingPriceImpact = (
   tokenInAmount: string,
   swapTodos: EstimateSwapView[],

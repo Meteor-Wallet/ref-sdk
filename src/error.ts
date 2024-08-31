@@ -1,5 +1,4 @@
-import { config, getConfig } from './constant';
-import { DCL_POOL_FEE_LIST } from './dcl-swap/dcl-pool';
+import { config, DCL_POOL_FEE_LIST, getConfig } from './constant';
 
 export const formatError = (msg: string) => {
   return new Error(msg);

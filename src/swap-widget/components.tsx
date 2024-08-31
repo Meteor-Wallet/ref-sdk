@@ -68,7 +68,6 @@ import {
   DEFAULT_START_TOKEN_LIST_TESTNET,
   DEFAULT_START_TOKEN_LIST_MAINNET,
 } from './constant';
-import { PoolMode } from '../v1-swap/swap';
 import { isMobile, separateRoutes, divide, getMax } from '../utils';
 
 interface TokenAmountProps {

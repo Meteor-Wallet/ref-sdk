@@ -48,6 +48,7 @@ let near = new Near({
   ...getConfig(),
 });
 export const init_env = (env: string, indexerUrl?: string) => {
+  console.log('working')
   near = new Near({
     keyStore: getKeyStore(),
     headers: {},

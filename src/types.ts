@@ -1,5 +1,11 @@
 import Big from 'big.js';
-import { PoolMode } from './v1-swap/swap';
+
+export enum PoolMode {
+  PARALLEL = 'parallel swap',
+  SMART = 'smart routing',
+  SMART_V2 = 'stableSmart',
+  STABLE = 'stable swap',
+}
 
 export interface TokenMetadata {
   id: string;

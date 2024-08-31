@@ -6,9 +6,9 @@ import {
   toPrecision,
   registerAccountOnToken,
 } from '../utils';
-import { ONE_YOCTO_NEAR, WRAP_NEAR_CONTRACT_ID, config } from '../constant';
+import { ONE_YOCTO_NEAR, WRAP_NEAR_CONTRACT_ID, config, DCL_POOL_FEE_LIST } from '../constant';
 import { DCLSwapGetStorageBalance } from '../ref';
-import { DCL_POOL_FEE_LIST, getDCLPoolId } from './dcl-pool';
+import { getDCLPoolId } from './dcl-pool';
 import {
   nearDepositTransaction,
   ftGetStorageBalance,

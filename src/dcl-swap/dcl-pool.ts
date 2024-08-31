@@ -1,19 +1,7 @@
-import { TokenMetadata, Transaction } from '../types';
-import {
-  priceToPoint,
-  toNonDivisibleNumber,
-  toPrecision,
-  registerAccountOnToken,
-} from '../utils';
-import { ONE_YOCTO_NEAR, WRAP_NEAR_CONTRACT_ID, config } from '../constant';
-import {
-  nearDepositTransaction,
-  ftGetStorageBalance,
-  refDCLSwapViewFunction,
-} from '../ref';
+import { TokenMetadata } from '../types';
+import { DCL_POOL_FEE_LIST } from '../constant';
+import { refDCLSwapViewFunction, } from '../ref';
 import { NoFeeToPool } from '../error';
-
-export const DCL_POOL_FEE_LIST = [100, 400, 2000, 10000];
 
 interface PoolInfo {
   pool_id?: string;

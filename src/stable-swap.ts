@@ -1,13 +1,4 @@
-import { StablePool } from './types';
 import { FEE_DIVISOR } from './constant';
-
-import {
-  toReadableNumber,
-  toNonDivisibleNumber,
-  scientificNotationToString,
-} from './utils';
-
-import Big from 'big.js';
 
 import _ from 'lodash';
 
@@ -89,64 +80,3 @@ export const calc_swap = (
   return [amount_swapped, fee, dy];
 };
 
-export const getSwappedAmount = (
-  tokenInId: string,
-  tokenOutId: string,
-  amountIn: string,
-  stablePool: StablePool,
-  STABLE_LP_TOKEN_DECIMALS: number
-) => {
-  const amp = stablePool.amp;
-  const trade_fee = stablePool.total_fee;
-
-  // depended on pools
-  const in_token_idx = stablePool.token_account_ids.findIndex(
-    id => id === tokenInId
-  );
-  const out_token_idx = stablePool.token_account_ids.findIndex(
-    id => id === tokenOutId
-  );
-
-  const rates = stablePool.rates.map(r =>
-    toReadableNumber(STABLE_LP_TOKEN_DECIMALS, r)
-  );
-
-  const base_old_c_amounts = stablePool.c_amounts.map(amount =>
-    toReadableNumber(STABLE_LP_TOKEN_DECIMALS, amount)
-  );
-
-  const old_c_amounts = base_old_c_amounts
-    .map((amount, i) =>
-      toNonDivisibleNumber(
-        STABLE_LP_TOKEN_DECIMALS,
-        scientificNotationToString(
-          new Big(amount || 0).times(new Big(rates[i])).toString()
-        )
-      )
-    )
-    .map(amount => Number(amount));
-
-  const in_c_amount = Number(
-    toNonDivisibleNumber(
-      STABLE_LP_TOKEN_DECIMALS,
-      scientificNotationToString(
-        new Big(amountIn).times(new Big(rates[in_token_idx])).toString()
-      )
-    )
-  );
-
-  const [amount_swapped, fee, dy] = calc_swap(
-    amp,
-    in_token_idx,
-    in_c_amount,
-    out_token_idx,
-    old_c_amounts,
-    trade_fee
-  );
-
-  return [
-    amount_swapped / Number(rates[out_token_idx]),
-    fee,
-    dy / Number(rates[out_token_idx]),
-  ];
-};

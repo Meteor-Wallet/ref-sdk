@@ -1,15 +1,14 @@
-import { TokenMetadata, Pool, StablePool, EstimateSwapView } from '../types';
+import { TokenMetadata, Pool, StablePool, EstimateSwapView, PoolMode } from '../types';
 import {
   toReadableNumber,
   toNonDivisibleNumber,
-  scientificNotationToString,
+  scientificNotationToString, getSwappedAmount,
 } from '../utils';
 import Big from 'big.js';
 import { SameInputTokenError, ZeroInputError, NoPoolError } from '../error';
 import { ONLY_ZEROS, toPrecision } from '../utils';
 import _ from 'lodash';
 import { FEE_DIVISOR } from '../constant';
-import { getSwappedAmount } from '../stable-swap';
 import { ftGetTokenMetadata, ftGetTokensMetadata } from '../ref';
 import { isStablePool } from '../utils';
 import { getTokensTiny } from '../indexer';
@@ -24,12 +23,6 @@ import {
   //@ts-ignore
 } from './smartRoutingLogic.js';
 
-export enum PoolMode {
-  PARALLEL = 'parallel swap',
-  SMART = 'smart routing',
-  SMART_V2 = 'stableSmart',
-  STABLE = 'stable swap',
-}
 
 export interface SwapParams {
   tokenIn: TokenMetadata;
